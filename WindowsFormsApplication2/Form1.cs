@@ -31,8 +31,10 @@ namespace CVE_BID_tool
                     our_cves.Add(t);
                 }
                 our_cves = our_cves.OrderBy(x => x.getID()).ToList();
+                int i = 0;
                 foreach (CVE c in our_cves)
                 {
+                    addTextBoxes(i, c.getID(), c.getDescription());
                     tmp += c.getID() + "\r\n\r\n";
                     tmp += c.getDescription() + "\r\n\r\n";
                     if (c.bids.Count > 0)
@@ -40,6 +42,7 @@ namespace CVE_BID_tool
                         {
                             our_bids.Add(b);
                         }
+                    i++;
                 }
                 our_bids = our_bids.GroupBy(x => x.id).Select(g => g.First()).ToList();
                 our_bids = our_bids.OrderBy(x => x.id).ToList();
@@ -48,7 +51,7 @@ namespace CVE_BID_tool
                     tmp += b.id + "\r\n\r\n";
                     tmp += b.description + "\r\n\r\n";
                 }
-                copy_box.Text = tmp;
+               // copy_box.Text = tmp;
             }
             else if (selector.SelectedIndex == 1)
             {
@@ -67,7 +70,7 @@ namespace CVE_BID_tool
                     tmp += b.id + "\r\n\r\n";
                     tmp += b.description + "\r\n\r\n";
                 }
-                copy_box.Text = tmp;
+              //  copy_box.Text = tmp;
             }
         }
 
@@ -77,6 +80,46 @@ namespace CVE_BID_tool
         }
 
         private void selector_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void addTextBoxes(int i, string id, string description)
+        {
+       //     for (int i = 0; i < count; i++)
+ //           {
+                Label l = new Label();
+                l.Location = new System.Drawing.Point(285, i * 100);
+                l.Name = "LabelName" + i.ToString();
+                l.Size = new System.Drawing.Size(200, 20);
+                l.Text = id;
+                panel1.Controls.Add(l);
+                TextBox tb = new TextBox();
+                tb.Location = new System.Drawing.Point(40, 20 + i * 100);
+                tb.Name = "TextBoxName" + i.ToString();
+                tb.Size = new System.Drawing.Size(600, 20);
+                tb.TabIndex = i + 2;
+                tb.Text = description;
+                tb.Height = (tb.Text.Split('\n').Length + 4) * tb.Font.Height;
+                tb.Multiline = true;
+                tb.ReadOnly = true;
+                tb.Click += new EventHandler(OnTBClick);
+                panel1.Controls.Add(tb);
+  //          }
+        }
+
+        private void OnTBClick(object sender, EventArgs e)
+        {
+            TextBox t = (TextBox)sender;
+            Clipboard.SetText(t.Text);          
+        }
+
+        private void Form1_Load_1(object sender, EventArgs e)
         {
 
         }

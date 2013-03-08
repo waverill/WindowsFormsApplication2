@@ -19,7 +19,7 @@ namespace CVE_BID_tool
             this.bids = new List<BID>();
             if (verifyCVE(cve))
             {
-                this.id = cve;
+                this.id = cve.Trim();
                 this.description = setDescription();
                 curl();
             }

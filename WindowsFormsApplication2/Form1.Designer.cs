@@ -31,7 +31,7 @@
             this.submit_button = new System.Windows.Forms.Button();
             this.items_box = new System.Windows.Forms.TextBox();
             this.selector = new System.Windows.Forms.ComboBox();
-            this.copy_box = new System.Windows.Forms.TextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
             // submit_button
@@ -64,27 +64,27 @@
             this.selector.TabIndex = 2;
             this.selector.SelectedIndexChanged += new System.EventHandler(this.selector_SelectedIndexChanged);
             // 
-            // copy_box
+            // panel1
             // 
-            this.copy_box.Location = new System.Drawing.Point(2, 108);
-            this.copy_box.Multiline = true;
-            this.copy_box.Name = "copy_box";
-            this.copy_box.ReadOnly = true;
-            this.copy_box.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.copy_box.Size = new System.Drawing.Size(655, 391);
-            this.copy_box.TabIndex = 3;
+            this.panel1.AutoScroll = true;
+            this.panel1.Location = new System.Drawing.Point(0, 94);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(667, 402);
+            this.panel1.TabIndex = 3;
+            this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(669, 500);
-            this.Controls.Add(this.copy_box);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.selector);
             this.Controls.Add(this.items_box);
             this.Controls.Add(this.submit_button);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load_1);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -95,7 +95,7 @@
         private System.Windows.Forms.Button submit_button;
         private System.Windows.Forms.TextBox items_box;
         private System.Windows.Forms.ComboBox selector;
-        private System.Windows.Forms.TextBox copy_box;
+        private System.Windows.Forms.Panel panel1;
 
     }
 }
