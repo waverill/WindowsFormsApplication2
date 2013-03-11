@@ -15,13 +15,13 @@ namespace CVE_BID_tool
 
         public BID(string bid)
         {
-            this.id = bid;
+            this.id = bid.Trim();
             this.description = getDescription();
         }
 
         public BID(string bid, string desc)
         {
-            this.id = bid;
+            this.id = bid.Trim();
             this.description = desc;
         }
 

@@ -49,7 +49,7 @@ namespace CVE_BID_tool
         {
             Regex bid = new Regex(@"/bid/([0-9]+)");
             string URI = "http://www.securityfocus.com/bid";
-            string myParameters = "op=display_list&c=12&vendor=&title=&version=&CVE=" + this.id.Trim();
+            string myParameters = "op=display_list&c=12&vendor=&title=&version=&CVE=" + this.id;
             WebClient wc = new WebClient();
             wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
             string HtmlResult = wc.UploadString(URI, myParameters);

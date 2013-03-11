@@ -69,7 +69,7 @@
             this.panel1.AutoScroll = true;
             this.panel1.Location = new System.Drawing.Point(0, 94);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(667, 402);
+            this.panel1.Size = new System.Drawing.Size(667, 557);
             this.panel1.TabIndex = 3;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
@@ -77,11 +77,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(669, 500);
+            this.ClientSize = new System.Drawing.Size(669, 647);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.selector);
             this.Controls.Add(this.items_box);
             this.Controls.Add(this.submit_button);
+            this.MaximumSize = new System.Drawing.Size(685, 685);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load_1);
