@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace CVE_BID_tool
 {
@@ -14,6 +15,14 @@ namespace CVE_BID_tool
         private int buffer;
         private List<Label> form_labels;
         private List<TextBox> form_tbs;
+        private List<CVE> cves;
+        private List<BID> bids;
+        private int count;
+
+        delegate void showProgressDelegate(int cves, int cves_done, CVE c);
+        delegate void showProgress2Delegate(int count, BID b, Boolean first);
+        delegate void showProgress3Delegate(int done, Boolean hide);
+        delegate void showBidsDelegate();
 
         public Form1()
         {
@@ -27,42 +36,8 @@ namespace CVE_BID_tool
             clearControls();
             if (selector.SelectedIndex == 0)
             {
-                List<CVE> our_cves = new List<CVE>();
-                List<BID> our_bids = new List<BID>();
-                char[] delimiterChars = { ',' };
-                string[] cves = this.items_box.Text.Split(delimiterChars);
-                string tmp = "";
-                foreach (string c in cves)
-                {
-                    CVE t = new CVE(c);
-                    our_cves.Add(t);
-                }
-                our_cves = our_cves.OrderBy(x => x.getID()).ToList();
-                int i = 0;
-                foreach (CVE c in our_cves)
-                {
-                    addTextBoxes(i, c.getID(), c.getDescription());
-                    tmp += c.getID() + "\r\n\r\n";
-                    tmp += c.getDescription() + "\r\n\r\n";
-                    if (c.bids.Count > 0)
-                        foreach (BID b in c.bids)
-                        {
-                            our_bids.Add(b);
-                        }
-                    i++;
-                }
-                our_bids = our_bids.GroupBy(x => x.id).Select(g => g.First()).ToList();
-                our_bids = our_bids.OrderBy(x => x.id).ToList();
-                bool first = true;
-                foreach (BID b in our_bids)
-                {
-                    addTextBoxes2(i, b.id, b.description, first);
-                    tmp += b.id + "\r\n\r\n";
-                    tmp += b.description + "\r\n\r\n";
-                    i++;
-                    first = false;
-                }
-               // copy_box.Text = tmp;
+                Thread cveThread = new Thread(new ThreadStart(makeCVEs));
+                cveThread.Start();
             }
             else if (selector.SelectedIndex == 1)
             {
@@ -105,17 +80,16 @@ namespace CVE_BID_tool
 
         private void addTextBoxes(int i, string id, string description)
         {
-       //     for (int i = 0; i < count; i++)
- //           {
+                int offset = this.panel1.VerticalScroll.Value;
                 Label l = new Label();
-                l.Location = new System.Drawing.Point(285, i * 100);
+                l.Location = new System.Drawing.Point(285, (i-1) * 90 - offset);
                 l.Name = "LabelName" + i.ToString();
                 l.Size = new System.Drawing.Size(200, 20);
                 l.Text = id;
-                panel1.Controls.Add(l);
+                this.panel1.Controls.Add(l);
                 this.form_labels.Add(l);
                 TextBox tb = new TextBox();
-                tb.Location = new System.Drawing.Point(40, 20 + i * 100);
+                tb.Location = new System.Drawing.Point(40, ((i-1) * 90) + 20 - offset);
                 tb.Name = "TextBoxName" + i.ToString();
                 tb.Size = new System.Drawing.Size(600, 20);
                 tb.TabIndex = i + 2;
@@ -124,26 +98,24 @@ namespace CVE_BID_tool
                 tb.Multiline = true;
                 tb.ReadOnly = true;
                 tb.Click += new EventHandler(OnTBClick);
-                panel1.Controls.Add(tb);
+                this.panel1.Controls.Add(tb);
                 this.form_tbs.Add(tb);
-  //          }
         }
 
         private void addTextBoxes2(int i, string id, string description, bool first)
         {
-            //     for (int i = 0; i < count; i++)
-            //           {
-
             if (first)
-                this.buffer = 100 * i;
+                this.buffer = (90 * i) + 5 - this.panel1.VerticalScroll.Value;
             else
                 this.buffer += 50;
             Label l = new Label();
-            l.Location = new System.Drawing.Point(295, buffer);
+            l.Location = new System.Drawing.Point(305, buffer);
             l.Name = "LabelName" + i.ToString();
             l.Size = new System.Drawing.Size(200, 20);
             l.Text = id;
-            panel1.Controls.Add(l);
+            l.Click += new EventHandler(OnBIDLabelClick);
+            this.panel1.Controls.Add(l);
+            this.form_labels.Add(l);
             TextBox tb = new TextBox();
             tb.Location = new System.Drawing.Point(40, 20 + buffer);
             tb.Name = "TextBoxName" + i.ToString();
@@ -151,11 +123,27 @@ namespace CVE_BID_tool
             tb.TabIndex = i + 2;
             tb.Text = description;
             tb.Height = (tb.Text.Split('\n').Length + 4) * tb.Font.Height;
-          //  tb.Multiline = true;
             tb.ReadOnly = true;
             tb.Click += new EventHandler(OnTBClick);
-            panel1.Controls.Add(tb);
-            //          }
+            this.panel1.Controls.Add(tb);
+            this.form_tbs.Add(tb);
+        }
+
+        private void displayLabel(int done, Boolean hide)
+        {
+                this.label1.Visible = !hide;
+                this.progressBar1.Visible = !hide;
+                this.progressBar1.Maximum = this.cves.Count;
+                if (this.progressBar1.Maximum == done)
+                    this.progressBar1.Value = 0;
+                else
+                    this.progressBar1.Value = done;
+        }
+
+        private void OnBIDLabelClick(object sender, EventArgs e)
+        {
+            Label l = (Label)sender;
+            Clipboard.SetText(l.Text);
         }
 
         private void OnTBClick(object sender, EventArgs e)
@@ -175,6 +163,139 @@ namespace CVE_BID_tool
                 panel1.Controls[x].Dispose();
             panel1.Controls.Clear();
             this.buffer = 0;
+        }
+
+
+        void showProgress(int cves, int cves_done, CVE c)
+        {
+            if (progressBar1.InvokeRequired == false)
+            {
+                addTextBoxes(cves_done, c.getID(), c.getDescription());
+            }
+            else
+            {
+                showProgressDelegate ShowProgress = new showProgressDelegate(showProgress);
+                this.BeginInvoke(ShowProgress, new object[] { cves, cves_done, c });
+            }
+
+        }
+
+
+        void showProgress2(int count, BID b, Boolean first)
+        {
+            if (progressBar1.InvokeRequired == false)
+            {
+                addTextBoxes2(count, b.id, b.description, first);
+            }
+            else
+            {
+                showProgress2Delegate ShowProgress2 = new showProgress2Delegate(showProgress2);
+                this.BeginInvoke(ShowProgress2, new object[] { count, b, first});
+            }
+
+        }
+
+        void showProgress3(int done, Boolean hide)
+        {
+            if (progressBar1.InvokeRequired == false)
+            {
+                displayLabel(done, hide);
+            }
+            else
+            {
+                showProgress3Delegate ShowProgress3 = new showProgress3Delegate(showProgress3);
+                this.BeginInvoke(ShowProgress3, new object[] { done, hide });
+            }
+
+        }
+
+        void showBids()
+        {
+            if (textBox1.InvokeRequired == false)
+            {
+                all_da_bids();
+            }
+            else
+            {
+                showBidsDelegate ShowBids = new showBidsDelegate(showBids);
+                this.BeginInvoke(ShowBids);
+            }
+
+        }
+
+        void makeCVEs()
+        {
+            this.cves = new List<CVE>();
+            this.bids = new List<BID>();
+            char[] delimiterChars = { ',' };
+            string[] cves = this.items_box.Text.Split(delimiterChars);
+            int total = cves.Length;
+            for (int x = 0; x < total; x++)
+                cves[x] = cves[x].Trim();
+            this.count = 0;
+            Array.Sort(cves);
+            foreach (string c in cves)
+            {
+                CVE t = new CVE(c);
+                this.cves.Add(t);
+                this.count++;
+                showProgress(total, this.count, t);
+            }
+            Thread bidThread = new Thread(new ThreadStart(CVEsToBIDs));
+            bidThread.Start();
+        }
+
+        void CVEsToBIDs()
+        {
+            int done = 0;
+            showProgress3(done, false);
+            foreach (CVE c in this.cves)
+            {
+                List<BID> bds = c.curl();
+                foreach (BID b in bds)
+                {
+                    this.bids.Add(b);
+                }
+                done++;
+                showProgress3(done,false);
+            }
+            showProgress3(0, true);
+            this.bids = this.bids.GroupBy(x => x.id).Select(g => g.First()).ToList();
+            this.bids = this.bids.OrderBy(x => x.id).ToList();
+            bool first = true;
+            foreach (BID b in this.bids)
+            {
+                showProgress2(this.count, b, first);
+                this.count++;
+                first = false;
+            }
+            showBids();
+        }
+
+        void makeBIDs()
+        {
+
+        }
+
+        private void all_da_bids()
+        {
+            string bid_print = "";
+            foreach (BID b in this.bids)
+            {
+                bid_print += b.id + ", ";
+            }
+            bid_print = bid_print.Substring(0, bid_print.Length - 1);
+            this.textBox1.Text = bid_print;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -12,16 +12,16 @@ namespace CVE_BID_tool
     {
         private string id;
         private string description;
-        public List<BID> bids;
+     //   public List<BID> bids;
 
         public CVE(string cve)
         {
-            this.bids = new List<BID>();
+          //  this.bids = new List<BID>();
             if (verifyCVE(cve))
             {
                 this.id = cve.Trim();
                 this.description = setDescription();
-                curl();
+          //      curl();
             }
         }
 
@@ -45,8 +45,9 @@ namespace CVE_BID_tool
             return (Regex.Replace(descrip, @"\s+", " "));
         }
 
-        private void curl()
+        public List<BID> curl()
         {
+            List<BID> associated_bids = new List<BID>();
             Regex bid = new Regex(@"/bid/([0-9]+)");
             string URI = "http://www.securityfocus.com/bid";
             string myParameters = "op=display_list&c=12&vendor=&title=&version=&CVE=" + this.id;
@@ -64,10 +65,11 @@ namespace CVE_BID_tool
                     if (m.Success && n.InnerText.Substring(0, 4) != "http")
                     {
                         BID tmp = new BID(m.Groups[1].Captures[0].Value, n.InnerText);
-                        this.bids.Add(tmp);
+                        associated_bids.Add(tmp);
                     }
                 }
             }
+            return associated_bids;
         }
 
         public string getID()
